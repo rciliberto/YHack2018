@@ -17,7 +17,6 @@ def generate_model(file_name):
     frequencies['END'] = 1
     model[prev_tick] = frequencies
 
-    print([ str(keys) for keys in model.keys() ])
     return model
 
 def get_next_note(prev_note, model):
@@ -91,7 +90,7 @@ def save(song, file_name):
 
     for note in running_notes:
         track.append(Message('note_off',
-            note=note.note,
+            note=note,
             velocity=127,
             time=(curr_tick - last_command)
         ))
