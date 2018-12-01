@@ -1,21 +1,49 @@
+from encoding import EncodedMidi, Tick
 from mido import Message, MidiFile, MidiTrack
 import random
 
-def generate_model(file_name):
-    # returns dictionary { Tick: [ [ Tick, freq], ... ], ... }
-    return
+def generate_model(file_name, file_2):
+    ticks = EncodedMidi(file_name).encoding
+    
+    model = {}
+    prev_tick = 'FIRST'
+    for tick in ticks:
+        frequencies = model.get(prev_tick, {})
+        frequencies[tick] = frequencies.get(tick, 0) + 1
+        model[prev_tick] = frequencies
+        prev_tick = tick
+
+    ticks = EncodedMidi(file_name).encoding
+    for tick in ticks:
+        frequencies = model.get(prev_tick, {})
+        frequencies[tick] = frequencies.get(tick, 0) + 1
+        model[prev_tick] = frequencies
+        prev_tick = tick
+
+    frequencies = model.get(prev_tick, {})
+    frequencies['END'] = 1
+    model[prev_tick] = frequencies
+
+    print([ str(keys) for keys in model.keys() ])
+    return model
 
 def get_next_note(prev_note, model):
     # returns next note based on previous
-    sum = 0
-    for nested_list in note_list:
-        sum += nested_list[1]
-    weighted_val = random.randint(0, sum)
+    #print('prev', prev_note)
     note_list = model[prev_note]
-    for nested_list in note_list:
-        sum -= weighted - (nested_list[1])
-        if sum < 0:
-            return nested_list[0]
+    #print(note_list)
+    sum = 0
+    for tick, freq in note_list.items():
+        sum += freq
+    weighted_val = random.randint(0, sum)
+    #print(weighted_val)
+    for tick, freq in note_list.items():
+        weighted_val -= freq
+        #print('asdf', weighted_val)
+        if weighted_val <= 0:
+            #print(tick)
+            return tick
+    print("NONE")
 
 # returns list of notes by tick
 def generate_new(model):
@@ -42,20 +70,19 @@ def save(song, file_name):
         to_delete = []
 
         for note in running_notes:
-            if note in tick:
+            if note in tick.notes:
                 to_keep.append(note)
             else:
                 to_delete.append(note)
 
-        for note in tick:
+        for note in tick.notes:
             if not note in to_keep:
                 to_keep.append(note)
                 track.append(Message('note_on',
                     note=note,
-                    velocity=127,
+                    velocity=(8 * random.randint(8, 16) - 1),
                     time=(curr_tick - last_command)
                 ))
-                print('note_on ' + str(note) + ' ' + str(curr_tick - last_command))
                 last_command = curr_tick
 
         running_notes = to_keep
@@ -65,7 +92,6 @@ def save(song, file_name):
                 velocity=127,
                 time=(curr_tick - last_command)
             ))
-            print('note_off ' + str(note) + ' ' + str(curr_tick - last_command))
             last_command = curr_tick
 
         curr_tick += 1
@@ -76,10 +102,9 @@ def save(song, file_name):
             velocity=127,
             time=(curr_tick - last_command)
         ))
-        print('note_off ' + str(note) + ' ' + str(curr_tick - last_command))
         last_command = curr_tick
     mid.save(file_name)
 
-model = generate_model('./01Minuetto1.mid')
+model = generate_model('./01Minuetto1.mid', './01Minuetto2.mid')
 song = generate_new(model)
 save(song, './newsong.mid')

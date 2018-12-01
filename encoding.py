@@ -5,23 +5,28 @@ from mido import MidiFile
 class Tick:
     """Represents a slice in time as a list of notes"""
 
-    def __init__(self, *notes):
+    def __init__(self, notes):
         self.notes = sorted(notes)
 
     def __str__(self):
         return str(self.notes)
     
     def __eq__(self, other):
+        if not isinstance(other, Tick):
+            return False
         return self.notes == other.notes
+
+    def __hash__(self):
+        return hash(repr(str(self)))
 
 class EncodedMidi:
     """Represents a midi file in our encoded version"""
 
     def __init__(self, midi_path):
         self.midi_in = MidiFile(midi_path)
-        self.encoding = generate_encoding(self.midi_in.tracks[1])
+        self.encoding = self.generate_encoding(self.midi_in.tracks[1])
 
-    def generate_encoding(track):
+    def generate_encoding(self, track):
         ticks = [[]]
         notes_to_add = []
 
@@ -37,6 +42,7 @@ class EncodedMidi:
                     #print("rm", notes_to_add)
                 
                 #print("actual", notes_to_add)
-                ticks.append(notes_to_add[:])
+                ticks.append(Tick(notes_to_add[:]))
+                print(Tick(notes_to_add[:]).notes)
         
         return ticks
