@@ -2,7 +2,7 @@ def generate_model(fileName):
     # returns dictionary { note: [ [note, freq], [note, freq], ... ], ... }
     return
 
-def get_next_note(prevNote):
+def get_next_note(prevNote, model):
     # returns next note based on previous
     return
 
