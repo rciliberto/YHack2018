@@ -24,25 +24,45 @@ class EncodedMidi:
 
     def __init__(self, midi_path):
         self.midi_in = MidiFile(midi_path)
-        self.encoding = self.generate_encoding(self.midi_in.tracks[1])
+        self.encoding = self.generate_encoding(self.midi_in.tracks)
 
-    def generate_encoding(self, track):
-        ticks = [[]]
-        notes_to_add = []
-
-        for msg in track:
-            if not msg.is_meta:
-                between_ticks = [ticks.pop()]*msg.time
-                ticks = ticks + between_ticks
-                if msg.type == 'note_on':
-                    notes_to_add.append(msg.note)
-                    #print("add", notes_to_add)
-                elif msg.type == 'note_off':
-                    notes_to_add.remove(msg.note)
-                    #print("rm", notes_to_add)
-                
-                #print("actual", notes_to_add)
-                ticks.append(Tick(notes_to_add[:]))
-                print(Tick(notes_to_add[:]).notes)
+    def generate_encoding(self, tracks):
+        merged_ticks = []
+        track_ticks = []
         
+        longest_track = 0
+        longest_track_length = 0
+        for track in tracks:
+            ticks = [[]]
+            notes_to_add = []
+            num_ticks = 0
+
+            for msg in track:
+                if not msg.is_meta:
+                    num_ticks += msg.time
+
+                    between_ticks = [ticks.pop()]*msg.time
+                    ticks = ticks + between_ticks
+                    if msg.type == 'note_on':
+                        notes_to_add.append(msg.note)
+                        #print("add", notes_to_add)
+                    elif msg.type == 'note_off':
+                        notes_to_add.remove(msg.note)
+                        #print("rm", notes_to_add)
+                    
+                    #print("actual", notes_to_add)
+                    ticks.append(Tick(notes_to_add[:]))
+                    print(Tick(notes_to_add[:]).notes)
+            track_ticks.append(ticks) 
+
+            if num_ticks > longest_track_length:
+                longest_track_length = num_ticks
+                longest_track = len(tracks)
+
+        print(track_ticks[1])
+        for i in range(0, longest_track_length):
+            notes = []
+            for track in [ track for track in track_ticks if len(track) == longest_track_length ]:
+                notes += track[i].notes
+            merged_ticks.append(notes)
         return ticks

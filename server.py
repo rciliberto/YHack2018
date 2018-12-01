@@ -25,12 +25,17 @@ def serve_root():
             filename = file_id + '.mid'
             path = os.path.join('./uploads', file_id + '.mid')
             output = os.path.join('./uploads', file_id + '_out.mid')
+            info = os.path.join('./uploads', file_id + '.info')
             file.save(path)
+            with open(info, 'w') as info_file:
+                info_file.write(file.filename[:-4])
 
             model = generate_model(path)
             song = generate_new(model)
             save(song, output)
             return redirect("https://mg.pantherman594.com/uploaded?file=" + file_id)
+        else:
+            return redirect(request.url)
     else:
         return """<style>
             body {
@@ -63,7 +68,7 @@ def serve_root():
                 padding: 10px 0;
             }
         </style>
-        <form method="post" enctype="multipart/form-data">
+        <form id="form" method="post" enctype="multipart/form-data">
             <label id="uploadLabel" class="button">
                 <input id="upload" accept=".mid" type="file" name="file">
                 <span id="uploadText">Select File</span><br />
@@ -86,14 +91,26 @@ def serve_root():
                     document.getElementById("submitLabel").classList.add("disabled");
                 }
             };
+            document.getElementById("form").onsubmit = function(event) {
+                document.getElementById("submitText").innerHTML = "Uploading...";
+            };
         </script>
         """
 
 @app.route("/list")
 @cross_origin()
 def serve_list():
-    ids = [ file[:-8] for file in os.listdir('./uploads') if file.endswith('_out.mid') ]
-    return jsonify(ids)
+    files = {}
+    for file in os.listdir('./uploads'):
+        if not file.endswith('.info'):
+            continue
+        file_id = file[:-5]
+        info = os.path.join('./uploads', file)
+        with open(info, 'r') as info_file:
+            for line in info_file:
+                files[file_id] = line
+                break
+    return jsonify(files)
 
 
 @app.route("/uploaded")
