@@ -27,7 +27,7 @@ def serveRoot():
             model = generate_model(path)
             song = generate_new(model)
             save(song, output)
-            return redirect("/uploaded?file=" + fileId)
+            return redirect("https://mg.pantherman594.com/uploaded?file=" + fileId)
     else:
         return """<style>
             body {
@@ -88,4 +88,7 @@ def serveRoot():
 
 @app.route("/uploaded")
 def serveUpdated():
-    return "<span style=\"display:inline-block;width:100%;text-align:center;font:normal normal normal 14px/1.4em avenir-lt-w01_35-light1475496,sans-serif;\">Your file has been uploaded!</span>"
+    if 'file' not in request.args:
+        return redirect('https://mg.pantherman594.com/')
+    download_url = 'https://mg.pantherman594.com/uploads/' + request.args['file'] + '_out.mid'
+    return "<span style=\"display:inline-block;width:100%;text-align:center;font:normal normal normal 14px/1.4em avenir-lt-w01_35-light1475496,sans-serif;\">Your file has been processed!<br /><a href=\"" + download_url + "\">Download</a></span>"
