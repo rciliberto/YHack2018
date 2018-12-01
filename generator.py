@@ -2,7 +2,7 @@ from encoding import EncodedMidi, Tick
 from mido import Message, MidiFile, MidiTrack
 import random
 
-def generate_model(file_name, file_2):
+def generate_model(file_name):
     ticks = EncodedMidi(file_name).encoding
     
     model = {}
@@ -13,18 +13,10 @@ def generate_model(file_name, file_2):
         model[prev_tick] = frequencies
         prev_tick = tick
 
-    ticks = EncodedMidi(file_name).encoding
-    for tick in ticks:
-        frequencies = model.get(prev_tick, {})
-        frequencies[tick] = frequencies.get(tick, 0) + 1
-        model[prev_tick] = frequencies
-        prev_tick = tick
-
     frequencies = model.get(prev_tick, {})
     frequencies['END'] = 1
     model[prev_tick] = frequencies
 
-    print([ str(keys) for keys in model.keys() ])
     return model
 
 def get_next_note(prev_note, model):
@@ -98,13 +90,9 @@ def save(song, file_name):
 
     for note in running_notes:
         track.append(Message('note_off',
-            note=note.note,
+            note=note,
             velocity=127,
             time=(curr_tick - last_command)
         ))
         last_command = curr_tick
     mid.save(file_name)
-
-model = generate_model('./01Minuetto1.mid', './01Minuetto2.mid')
-song = generate_new(model)
-save(song, './newsong.mid')
