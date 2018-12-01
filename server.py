@@ -2,8 +2,11 @@ import os
 import uuid
 
 from generator import generate_model, generate_new, save
-from flask import Flask, flash, request, redirect, url_for, send_from_directory
+from flask import Flask, flash, request, redirect, url_for, send_from_directory, jsonify
+from flask_cors import CORS, cross_origin
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route("/", methods=["GET", "POST"])
 def serve_root():
@@ -86,6 +89,13 @@ def serve_root():
         </script>
         """
 
+@app.route("/list")
+@cross_origin()
+def serve_list():
+    ids = [ file[:-8] for file in os.listdir('./uploads') if file.endswith('_out.mid') ]
+    return jsonify(ids)
+
+
 @app.route("/uploaded")
 def serve_updated():
     if 'file' not in request.args:
@@ -95,7 +105,7 @@ def serve_updated():
 
 @app.route("/uploads/<path:filename>")
 def serve_output(filename):
-    if not filename.endswith('_out.mid'):
+    if not filename.endswith('.mid'):
         return redirect('https://mg.pantherman594.com/')
     return send_from_directory('uploads', filename)
 
