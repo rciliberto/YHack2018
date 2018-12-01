@@ -2,11 +2,11 @@ import os
 import uuid
 
 from generator import generate_model, generate_new, save
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, send_from_directory
 app = Flask(__name__)
 
 @app.route("/", methods=["GET", "POST"])
-def serveRoot():
+def serve_root():
     if request.method == "POST":
         if 'file' not in request.files:
             print('No file part')
@@ -18,16 +18,16 @@ def serveRoot():
             flash('No selected file')
             return redirect(request.url)
         if file and file.filename.endswith('.mid'):
-            fileId = str(uuid.uuid4())
-            filename = fileId + '.mid'
-            path = os.path.join('./uploads', fileId + '.mid')
-            output = os.path.join('./uploads', fileId + '_out.mid')
+            file_id = str(uuid.uuid4())
+            filename = file_id + '.mid'
+            path = os.path.join('./uploads', file_id + '.mid')
+            output = os.path.join('./uploads', file_id + '_out.mid')
             file.save(path)
 
             model = generate_model(path)
             song = generate_new(model)
             save(song, output)
-            return redirect("https://mg.pantherman594.com/uploaded?file=" + fileId)
+            return redirect("https://mg.pantherman594.com/uploaded?file=" + file_id)
     else:
         return """<style>
             body {
@@ -87,8 +87,15 @@ def serveRoot():
         """
 
 @app.route("/uploaded")
-def serveUpdated():
+def serve_updated():
     if 'file' not in request.args:
         return redirect('https://mg.pantherman594.com/')
     download_url = 'https://mg.pantherman594.com/uploads/' + request.args['file'] + '_out.mid'
     return "<span style=\"display:inline-block;width:100%;text-align:center;font:normal normal normal 14px/1.4em avenir-lt-w01_35-light1475496,sans-serif;\">Your file has been processed!<br /><a href=\"" + download_url + "\">Download</a></span>"
+
+@app.route("/uploads/<path:filename>")
+def serve_output(filename):
+    if not filename.endswith('_out.mid'):
+        return redirect('https://mg.pantherman594.com/')
+    return send_from_directory('uploads', filename)
+
