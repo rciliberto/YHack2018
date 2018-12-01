@@ -11,8 +11,8 @@ def get_next_note(prev_note, model):
     weighted_val = random.randint(0,sum)
     note_list = model[prev_note]
     for nested_list in note_list:
-        sum -= weighted - (nested_list[1]-1)
-        if sum <= 0:
+        sum -= weighted - (nested_list[1])
+        if sum < 0:
             return nested_list[0]
 
 # returns list of notes by tick
