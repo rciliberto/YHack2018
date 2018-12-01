@@ -23,8 +23,8 @@ class EncodedMidi:
     """Represents a midi file in our encoded version"""
 
     def __init__(self, midi_path):
-        self.midi_in = MidiFile(midi_path)
-        self.encoding = self.generate_encoding(self.midi_in.tracks[1])
+        midi_in = MidiFile(midi_path)
+        self.encoding = self.generate_encoding(midi_in.tracks[1])
 
     def generate_encoding(self, track):
         ticks = [[]]
@@ -36,13 +36,9 @@ class EncodedMidi:
                 ticks = ticks + between_ticks
                 if msg.type == 'note_on':
                     notes_to_add.append(msg.note)
-                    #print("add", notes_to_add)
                 elif msg.type == 'note_off':
                     notes_to_add.remove(msg.note)
-                    #print("rm", notes_to_add)
                 
-                #print("actual", notes_to_add)
                 ticks.append(Tick(notes_to_add[:]))
-                print(Tick(notes_to_add[:]).notes)
         
         return ticks
