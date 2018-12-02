@@ -143,6 +143,6 @@ class RNN:
         return input_text, target_text
     
 rnn = RNN('./01Minuetto1.mid')
-rnn.train(50)
-#song = rnn.generate_ticks(start_ticks=rnn.ticks[0:5], num_generate=10000)
-#save(song, rnn.midi.ticks_per_beat, "./ai2.mid")
+#rnn.train(50)
+song = rnn.generate_ticks(start_ticks=rnn.ticks[0:1], num_generate=10000)
+save(song, rnn.midi.ticks_per_beat, "./ai2.mid")
