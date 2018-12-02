@@ -3,6 +3,7 @@ import uuid
 from flask import Flask, flash, request, redirect, url_for, send_from_directory, jsonify
 from flask_cors import CORS, cross_origin
 
+from encoding import EncodedMidi
 from generator import generate_model, generate_n_gram, generate_rnn, save
 import rnn
 
@@ -51,7 +52,7 @@ def serve_root():
             path = os.path.join('./uploads', file_id + '.mid')
             output = os.path.join('./uploads', file_id + '_out.mid')
             info = os.path.join('./uploads', file_id + '.info')
-            file.save(path)
+
             with open(info, 'w') as info_file:
                 info_file.write('Neural Network Sample')
 
@@ -64,11 +65,12 @@ def serve_root():
                 font: normal normal normal 14px/1.4em avenir-lt-w01_35-light1475496,sans-serif;
                 text-align: center;
             }
-            #upload, #submit {
+            #upload, .submit, #algo {
                 display: none;
             }
             .button {
-                padding: 10 40px;
+                padding: 10px 40px;
+                margin: 3px;
                 border: 2px solid rgba(145, 145, 145, 1);
                 color: #919191;
                 display: inline-block;
@@ -97,8 +99,13 @@ def serve_root():
             </label><br />
             <span id="selectedFile">Please select a file to process.</span><br />
             <label id="submitLabel" class="button disabled">
-                <input id="submit" type="submit" value="Process">
+                <input class="submit" type="submit" value="Process">
                 <span id="submitText">Process</span><br />
+            </label>
+            <input id="algo" name="algo" type="text" value="n_gram">
+            <label id="downloadLabel" class="button">
+                <input class="submit" type="submit" value="Process">
+                <span id="downloadText">Download Pre-Trained</span><br />
             </label>
         </form>
         <script>
@@ -115,6 +122,14 @@ def serve_root():
             };
             document.getElementById("form").onsubmit = function(event) {
                 document.getElementById("submitText").innerHTML = "Uploading...";
+                document.getElementById("submitLabel").classList.add("disabled");
+                document.getElementById("downloadLabel").classList.add("disabled");
+            };
+            document.getElementById("downloadText").onclick = function(event) {
+                document.getElementById("submitLabel").classList.add("disabled");
+                document.getElementById("downloadLabel").classList.add("disabled");
+                document.getElementById("downloadText").innerHTML = "Generating...";
+                document.getElementById("algo").value = "rnn";
             };
         </script>
         """

@@ -61,7 +61,7 @@ class EncodedMidi:
                         #print("rm", notes_to_add)
                     
                     #print("actual", notes_to_add)
-                    ticks.append(Tick(notes_to_add[:]))
+                    ticks.append(notes_to_add[:])
                     #print(Tick(notes_to_add[:]).notes)
             if highest > lowest:
                 track_ticks.append(ticks) 
@@ -75,6 +75,6 @@ class EncodedMidi:
             notes = []
             for track in track_ticks:
                 if len(track) > i and len(track) != 1:
-                    notes += track[i].notes
+                    notes += track[i]
             merged_ticks.append(Tick(notes))
         return merged_ticks
