@@ -93,6 +93,7 @@ def serve_root():
             };
             document.getElementById("form").onsubmit = function(event) {
                 document.getElementById("submitText").innerHTML = "Uploading...";
+                document.getElementById("submitLabel").classList.add("disabled");
             };
         </script>
         """
