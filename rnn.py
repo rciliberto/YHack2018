@@ -4,7 +4,6 @@ import os
 import time
 
 from encoding import EncodedMidi, Tick
-from generator import save
 
 # set up tf environment
 tf.enable_eager_execution()
@@ -141,8 +140,3 @@ class RNN:
         input_text = chunk[:-1]
         target_text = chunk[1:]
         return input_text, target_text
-    
-rnn = RNN('./01Minuetto1.mid')
-rnn.train(50)
-#song = rnn.generate_ticks(start_ticks=rnn.ticks[0:5], num_generate=10000)
-#save(song, rnn.midi.ticks_per_beat, "./ai2.mid")

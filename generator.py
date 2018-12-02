@@ -1,13 +1,13 @@
-from encoding import EncodedMidi, Tick
 from mido import Message, MidiFile, MidiTrack
 import random
 
-def generate_model(file_name):
-    ticks = EncodedMidi(file_name).encoding
-    
+from encoding import EncodedMidi, Tick
+import rnn
+
+def generate_model(encoding):
     model = {}
     prev_tick = 'FIRST'
-    for tick in ticks:
+    for tick in encoding:
         frequencies = model.get(prev_tick, {})
         frequencies[tick] = frequencies.get(tick, 0) + 1
         model[prev_tick] = frequencies
@@ -38,7 +38,7 @@ def get_next_note(prev_note, model):
     print("NONE")
 
 # returns list of notes by tick
-def generate_new(model):
+def generate_n_gram(model):
     prev_note = 'FIRST'
     ticks = []
     next_note = get_next_note('FIRST', model)
@@ -47,6 +47,9 @@ def generate_new(model):
         prev_note = next_note
         next_note = get_next_note(prev_note, model)
     return ticks
+
+def generate_rnn(rnn):
+    return rnn.generate_ticks(start_ticks=rnn.ticks[0:5], num_generate=10000)
 
 def save(song, ticks_per_beat, file_name):
     mid = MidiFile(type=0)
@@ -81,3 +84,4 @@ def save(song, ticks_per_beat, file_name):
     
     mid.tracks.append(track)
     mid.save(file_name)
+

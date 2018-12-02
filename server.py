@@ -1,9 +1,13 @@
 import os
 import uuid
-
-from generator import generate_model, generate_new, save
 from flask import Flask, flash, request, redirect, url_for, send_from_directory, jsonify
 from flask_cors import CORS, cross_origin
+
+from generator import generate_model, generate_n_gram, generate_rnn, save
+import rnn
+
+rnn = RNN('./01Minuetto1.mid')
+
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
@@ -11,16 +15,37 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route("/", methods=["GET", "POST"])
 def serve_root():
     if request.method == "POST":
-        if 'file' not in request.files:
-            print('No file part')
+        if 'algo' not in request.form:
             return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and file.filename.endswith('.mid'):
+
+        if request.form['algo'] == 'n_gram':
+            if 'file' not in request.files:
+                print('No file part')
+                return redirect(request.url)
+            file = request.files['file']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+            if file and file.filename.endswith('.mid'):
+                file_id = str(uuid.uuid4())
+                filename = file_id + '.mid'
+                path = os.path.join('./uploads', file_id + '.mid')
+                output = os.path.join('./uploads', file_id + '_out.mid')
+                info = os.path.join('./uploads', file_id + '.info')
+                file.save(path)
+                with open(info, 'w') as info_file:
+                    info_file.write(file.filename[:-4])
+
+                encoded_midi = EncodedMidi(path)
+                model = generate_model(encoded_midi.encoding)
+                song = generate_n_gram(model)
+                save(song, encoded_midi.ticks_per_beat, output)
+                return redirect("https://mg.pantherman594.com/uploaded?file=" + file_id)
+            else:
+                return redirect(request.url)
+        elif request.form['algo'] == 'rnn':
             file_id = str(uuid.uuid4())
             filename = file_id + '.mid'
             path = os.path.join('./uploads', file_id + '.mid')
@@ -28,14 +53,11 @@ def serve_root():
             info = os.path.join('./uploads', file_id + '.info')
             file.save(path)
             with open(info, 'w') as info_file:
-                info_file.write(file.filename[:-4])
+                info_file.write('Neural Network Sample')
 
-            model = generate_model(path)
-            song = generate_new(model)
-            save(song, output)
+            song = generate_rnn(rnn)
+            save(song, rnn.midi.ticks_per_beat, output)
             return redirect("https://mg.pantherman594.com/uploaded?file=" + file_id)
-        else:
-            return redirect(request.url)
     else:
         return """<style>
             body {
