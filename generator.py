@@ -48,51 +48,36 @@ def generate_new(model):
         next_note = get_next_note(prev_note, model)
     return ticks
 
-def save(song, file_name):
+def save(song, ticks_per_beat, file_name):
     mid = MidiFile(type=0)
     track = MidiTrack()
-    mid.tracks.append(track)
     track.append(Message('program_change', program=1, time=0))
+    mid.ticks_per_beat = ticks_per_beat
 
-    curr_tick = 1
-    last_command = 1
+    time_since_last_command = 0
     running_notes = []
     for tick in song:
-        to_keep = []
-        to_delete = []
+        to_delete = [t for t in running_notes if t not in tick.notes]
+        to_add = [t for t in tick.notes if t not in running_notes]
 
-        for note in running_notes:
-            if note in tick.notes:
-                to_keep.append(note)
-            else:
-                to_delete.append(note)
+        for note in to_add:
+            running_notes.append(note)
+            track.append(Message('note_on',
+                note=note,
+                velocity=64,
+                time=time_since_last_command
+            ))
+            time_since_last_command = 0
 
-        for note in tick.notes:
-            if not note in to_keep:
-                to_keep.append(note)
-                track.append(Message('note_on',
-                    note=note,
-                    velocity=(8 * random.randint(8, 16) - 1),
-                    time=(curr_tick - last_command)
-                ))
-                last_command = curr_tick
-
-        running_notes = to_keep
         for note in to_delete:
+            running_notes.remove(note)
             track.append(Message('note_off',
                 note=note,
-                velocity=127,
-                time=(curr_tick - last_command)
+                velocity=64,
+                time=time_since_last_command
             ))
-            last_command = curr_tick
-
-        curr_tick += 1
-
-    for note in running_notes:
-        track.append(Message('note_off',
-            note=note,
-            velocity=127,
-            time=(curr_tick - last_command)
-        ))
-        last_command = curr_tick
+            time_since_last_command = 0
+        time_since_last_command += 1
+    
+    mid.tracks.append(track)
     mid.save(file_name)

@@ -1,6 +1,6 @@
 import os
 
-from mido import MidiFile
+from mido import MidiFile, tempo2bpm
 
 class Tick:
     """Represents a slice in time as a list of notes"""
@@ -24,8 +24,9 @@ class EncodedMidi:
 
     def __init__(self, midi_path):
         midi_in = MidiFile(midi_path)
+        self.ticks_per_beat = midi_in.ticks_per_beat
         self.encoding = self.generate_encoding(midi_in.tracks)
-
+        
     def generate_encoding(self, tracks):
         merged_ticks = []
         track_ticks = []
